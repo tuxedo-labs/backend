@@ -9,7 +9,7 @@ import (
 func AdminRole(c *fiber.Ctx) error {
 	role := c.Locals("role")
 
-	if role == "user" {
+	if role == "member" {
 		return c.Status(http.StatusForbidden).JSON(fiber.Map{
 			"message": "forbidden access",
 		})
