@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"tuxedo/utils"
 
@@ -27,6 +26,5 @@ func Auth(c *fiber.Ctx) error {
 
 	c.Locals("usersInfo", claims)
 	c.Locals("role", claims["role"])
-	fmt.Printf("Claims: %+v\n", claims)
 	return c.Next()
 }

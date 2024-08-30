@@ -1,13 +1,10 @@
 package handler
 
 import (
-	"fmt"
-	"net/http"
-	"tuxedo/models/request"
-	"tuxedo/services"
-
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"net/http"
+	"tuxedo/services"
 )
 
 func GetProfile(c *fiber.Ctx) error {
@@ -17,8 +14,6 @@ func GetProfile(c *fiber.Ctx) error {
 			"message": "Unauthorized",
 		})
 	}
-
-	fmt.Printf("UsersInfo: %+v\n", usersInfo)
 
 	claims := usersInfo.(jwt.MapClaims)
 
@@ -37,12 +32,11 @@ func GetProfile(c *fiber.Ctx) error {
 		})
 	}
 
-	profile := request.UserProfile{
-		Name:      data.Name,
-		Email:     data.Email,
-		Role:      data.Role,
-		CreatedAt: data.CreatedAt.Format("2006-01-01"),
-		UpdatedAt: data.UpdatedAt.Format("2006-01-01"),
+	profile, err := services.BuildUserProfile(data)
+	if err != nil {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error building user profile",
+		})
 	}
 
 	return c.JSON(fiber.Map{

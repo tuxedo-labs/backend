@@ -24,4 +24,5 @@ func SetupRouter(r *fiber.App) {
 
 func AutoMigrate() {
 	config.RunMigrate(&entity.Users{})
+	config.RunMigrate(&entity.Contacts{})
 }
