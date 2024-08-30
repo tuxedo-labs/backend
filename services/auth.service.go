@@ -20,12 +20,13 @@ func ValidateLogin(loginRequest *request.LoginRequest) error {
 
 func GetUserByEmail(email string) (*entity.Users, error) {
 	var user entity.Users
-	err := database.DB.Debug().First(&user, "email = ?", email).Error
+	err := database.DB.First(&user, "email = ?", email).Error
 	return &user, err
 }
 
 func GenerateJWTToken(user *entity.Users) (string, error) {
 	claims := jwt.MapClaims{
+		"id":    user.ID,
 		"name":  user.Name,
 		"email": user.Email,
 		"exp":   time.Now().Add(time.Minute * 2).Unix(),
@@ -46,7 +47,7 @@ func ValidateRegister(registerRequest *request.RegisterRequest) error {
 
 func HashAndStoreUser(registerRequest *request.RegisterRequest) error {
 	var existingUser entity.Users
-	err := database.DB.Debug().First(&existingUser, "email = ?", registerRequest.Email).Error
+	err := database.DB.First(&existingUser, "email = ?", registerRequest.Email).Error
 	if err == nil {
 		return fmt.Errorf("user with email %s already exists", registerRequest.Email)
 	}
