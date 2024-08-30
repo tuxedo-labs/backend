@@ -53,7 +53,8 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	if err := services.HashAndStoreUser(registerRequest); err != nil {
+	result, err := services.HashAndStoreUser(registerRequest)
+	if err != nil {
 		if err.Error() == fmt.Sprintf("user with email %s already exists", registerRequest.Email) {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 				"message": "Email already in use",
@@ -66,5 +67,6 @@ func Register(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": "Success register",
+		"status":  result,
 	})
 }

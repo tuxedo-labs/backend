@@ -12,9 +12,9 @@ type Users struct {
 	Email     string         `json:"email"`
 	Password  string         `json:"password"`
 	Role      string         `json:"role" gorm:"type:enum('admin','member')"`
+	Verify    bool           `json:"verify"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
-
-	Contacts []Contacts `gorm:"foreignKey:UserID"`
+	Contacts  []Contacts     `gorm:"foreignKey:UserID"`
 }

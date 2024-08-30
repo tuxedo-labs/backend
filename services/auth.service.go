@@ -1,9 +1,11 @@
 package services
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
 	"tuxedo/database"
+	"tuxedo/lib"
 	"tuxedo/middleware"
 	"tuxedo/models/entity"
 	"tuxedo/models/request"
@@ -45,16 +47,15 @@ func ValidateRegister(registerRequest *request.RegisterRequest) error {
 	return validate.Struct(registerRequest)
 }
 
-func HashAndStoreUser(registerRequest *request.RegisterRequest) error {
+func HashAndStoreUser(registerRequest *request.RegisterRequest) (string, error) {
 	var existingUser entity.Users
-	err := database.DB.First(&existingUser, "email = ?", registerRequest.Email).Error
-	if err == nil {
-		return fmt.Errorf("user with email %s already exists", registerRequest.Email)
+	if err := database.DB.First(&existingUser, "email = ?", registerRequest.Email).Error; err == nil {
+		return "", fmt.Errorf("user with email %s already exists", registerRequest.Email)
 	}
 
 	hashedPassword, err := middleware.HashPassword(registerRequest.Password)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	newUser := entity.Users{
@@ -62,7 +63,42 @@ func HashAndStoreUser(registerRequest *request.RegisterRequest) error {
 		Email:    registerRequest.Email,
 		Password: hashedPassword,
 		Role:     "member",
+		Verify:   false,
 	}
 
-	return database.DB.Create(&newUser).Error
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		return "", err
+	}
+
+	token, err := generateVerificationToken()
+	if err != nil {
+		return "", err
+	}
+
+	verifyToken := entity.VerifyToken{
+		Token:  token,
+		UserID: newUser.ID,
+	}
+	if err := database.DB.Create(&verifyToken).Error; err != nil {
+		return "", err
+	}
+
+	err = lib.SendVerificationEmail(newUser.Email, token)
+	if err != nil {
+		return "", err
+	}
+
+	return "success", nil
+}
+
+func generateVerificationToken() (string, error) {
+	token := make([]byte, 4)
+	_, err := rand.Read(token)
+	if err != nil {
+		return "", err
+	}
+
+	num := uint32(token[0])<<24 | uint32(token[1])<<16 | uint32(token[2])<<8 | uint32(token[3])
+
+	return fmt.Sprintf("%06d", num%1000000), nil
 }
