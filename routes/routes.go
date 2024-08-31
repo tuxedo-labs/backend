@@ -25,10 +25,13 @@ func SetupRouter(r *fiber.App) {
 	// /users/update
 
 	// blog
+	app.Get("/blog", handler.GetBlog)
+	app.Post("/blog", handler.PostBlog)
 }
 
 func AutoMigrate() {
 	config.RunMigrate(&entity.Users{})
 	config.RunMigrate(&entity.Contacts{})
 	config.RunMigrate(&entity.VerifyToken{})
+	config.RunMigrate(&entity.Blog{})
 }
