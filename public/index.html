@@ -12,11 +12,17 @@
 
       <!-- Login API -->
       <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-4">1. /api/auth/login</h2>
+        <h2 class="text-2xl font-semibold mb-4">
+          1. <span class="text-red-500">POST</span> /api/auth/login
+        </h2>
         <p class="mb-2">Endpoint untuk login pengguna.</p>
 
         <div class="bg-white shadow-md rounded-lg p-6">
-          <h3 class="text-xl font-semibold mb-2">Request Payload</h3>
+          <h3 class="text-xl font-semibold mb-2">Headers</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>content-type</strong>: application/json</li>
+          </ul>
+          <h3 class="text-xl font-semibold mb-2 mt-2">Request Payload</h3>
           <ul class="list-disc list-inside ml-4">
             <li>
               <strong>email</strong> (string, required): Alamat email pengguna.
@@ -49,12 +55,18 @@
       </section>
 
       <!-- Register API -->
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">2. /api/auth/register</h2>
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-4">
+          2. <span class="text-red-500">POST</span> /api/auth/register
+        </h2>
         <p class="mb-2">Endpoint untuk registrasi pengguna baru.</p>
 
         <div class="bg-white shadow-md rounded-lg p-6">
-          <h3 class="text-xl font-semibold mb-2">Request Payload</h3>
+          <h3 class="text-xl font-semibold mb-2">Headers</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>content-type</strong>: application/json</li>
+          </ul>
+          <h3 class="text-xl font-semibold mb-2 mt-2">Request Payload</h3>
           <ul class="list-disc list-inside ml-4">
             <li>
               <strong>name</strong> (string, required): Nama lengkap pengguna.
@@ -86,17 +98,21 @@
         </div>
       </section>
 
-      <section class="mt-10">
-        <h2 class="text-2xl font-semibold mb-4">3. /api/users/profile</h2>
-        <p class="mb-2">Endpoint untuk get user profile.</p>
+      <!-- Get Profile API -->
+      <section>
+        <h2 class="text-2xl font-semibold mb-4">
+          3. <span class="text-green-500">GET</span> /api/users/profile
+        </h2>
+        <p class="mb-2">Endpoint untuk mengambil profil pengguna.</p>
 
         <div class="bg-white shadow-md rounded-lg p-6">
           <h3 class="text-xl font-semibold mb-2">Headers</h3>
           <ul class="list-disc list-inside ml-4">
-            <li><strong>x-token</strong> your_jwt_token_here</li>
+            <li><strong>x-token</strong>: your_jwt_token_here</li>
+            <li><strong>content-type</strong>: application/json</li>
           </ul>
           <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
-          <p class="mb-2">Jika berhasil, akan mengembalikan pesan sukses:</p>
+          <p class="mb-2">Jika berhasil, akan mengembalikan profil pengguna:</p>
           <pre class="bg-gray-200 p-4 rounded">
 {
   "data": {
