@@ -123,23 +123,25 @@ func DeleteVerifyTokenByUserID(userID uint) error {
 	return database.DB.Where("user_id = ?", userID).Delete(&entity.VerifyToken{}).Error
 }
 
-func GenerateAndSendVerificationToken(user *entity.Users) (string, error) {
+func GenerateAndSendVerificationToken(user *entity.Users) error {
 	token, err := generateVerificationToken()
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	newVerifyToken := entity.VerifyToken{
+	verifyToken := entity.VerifyToken{
 		Token:  token,
 		UserID: user.ID,
 	}
-	if err := database.DB.Create(&newVerifyToken).Error; err != nil {
-		return "", err
+
+	if err := database.DB.Create(&verifyToken).Error; err != nil {
+		return err
 	}
 
-	if err := lib.SendVerificationEmail(user.Email, token); err != nil {
-		return "", err
+	err = lib.SendVerificationEmail(user.Email, token)
+	if err != nil {
+		return err
 	}
 
-	return token, nil
+	return nil
 }

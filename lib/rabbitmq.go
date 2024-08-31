@@ -68,7 +68,7 @@ func SendVerificationEmail(email, token string) error {
 		"email": map[string]string{
 			"subject": fmt.Sprintf("Please verify your email - %s", appName),
 			"content": fmt.Sprintf("Register berhasil, segera aktifasi akun anda dengan memasukan token <b>%s</b>", token),
-			"from":    "admin@gmail.com",
+			"from":    "rafia9005@gmail.com",
 			"to":      email,
 		},
 	}

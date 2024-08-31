@@ -118,6 +118,7 @@ func VerifyCode(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
+		"status":  true,
 		"message": "Email verified successfully",
 	})
 }
@@ -149,8 +150,7 @@ func ResendVerifyRequest(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := services.GenerateAndSendVerificationToken(user)
-	if err != nil {
+	if err := services.GenerateAndSendVerificationToken(user); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to generate and send verification token",
 		})
@@ -159,6 +159,5 @@ func ResendVerifyRequest(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  true,
 		"message": "Verification token has been resent. Please check your email.",
-		"token":   token,
 	})
 }

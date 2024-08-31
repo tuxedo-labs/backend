@@ -22,6 +22,9 @@ func SetupRouter(r *fiber.App) {
 
 	//users
 	app.Get("/users/profile", auth, handler.GetProfile)
+	// /users/update
+
+	// blog
 }
 
 func AutoMigrate() {
