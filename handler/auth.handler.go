@@ -66,7 +66,51 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Success register",
+		"message": "Registration successful! Please check your email for the verification code",
 		"status":  result,
+	})
+}
+
+func VerifyCode(c *fiber.Ctx) error {
+	type VerifyRequest struct {
+		Token string `json:"token"`
+	}
+
+	verifyRequest := new(VerifyRequest)
+	if err := c.BodyParser(verifyRequest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request",
+		})
+	}
+
+	verifyToken, err := services.GetVerifyToken(verifyRequest.Token)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "Invalid or expired verification code",
+		})
+	}
+
+	user, err := services.GetUserByID(verifyToken.UserID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	user.Verify = true
+	if err := services.UpdateUser(user); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to verify user",
+		})
+	}
+
+	if err := services.DeleteVerifyToken(verifyToken.ID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to delete verification token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Email verified successfully",
 	})
 }

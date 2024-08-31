@@ -60,10 +60,13 @@ func SendVerificationEmail(email, token string) error {
 	if channel == nil {
 		return fmt.Errorf("channel is not initialized")
 	}
-
+	appName := os.Getenv("APP_NAME")
+	if appName == "" {
+		appName = "example"
+	}
 	message := map[string]interface{}{
 		"email": map[string]string{
-			"subject": "Please verify your email",
+			"subject": fmt.Sprintf("Please verify your email - %s", appName),
 			"content": fmt.Sprintf("Register berhasil, segera aktifasi akun anda dengan memasukan token <b>%s</b>", token),
 			"from":    "admin@gmail.com",
 			"to":      email,
@@ -76,10 +79,10 @@ func SendVerificationEmail(email, token string) error {
 	}
 
 	err = channel.Publish(
-		"notification", // Exchange name
-		"email",        // Routing key
-		false,          // Mandatory
-		false,          // Immediate
+		"notification",
+		"email",
+		false,
+		false,
 		amqp091.Publishing{
 			ContentType: "application/json",
 			Body:        payload,

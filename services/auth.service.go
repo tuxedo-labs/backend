@@ -91,6 +91,22 @@ func HashAndStoreUser(registerRequest *request.RegisterRequest) (string, error) 
 	return "success", nil
 }
 
+func UpdateUser(user *entity.Users) error {
+	return database.DB.Save(user).Error
+}
+
+func DeleteVerifyToken(tokenID uint) error {
+	return database.DB.Delete(&entity.VerifyToken{}, tokenID).Error
+}
+
+func GetVerifyToken(token string) (*entity.VerifyToken, error) {
+	var verifyToken entity.VerifyToken
+	if err := database.DB.Where("token = ?", token).First(&verifyToken).Error; err != nil {
+		return nil, err
+	}
+	return &verifyToken, nil
+}
+
 func generateVerificationToken() (string, error) {
 	token := make([]byte, 4)
 	_, err := rand.Read(token)
