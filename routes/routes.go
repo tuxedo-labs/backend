@@ -18,6 +18,7 @@ func SetupRouter(r *fiber.App) {
 	app.Post("/auth/login", handler.Login)
 	app.Post("/auth/register", handler.Register)
 	app.Post("/auth/verify-token", handler.VerifyCode)
+	app.Post("/auth/resend-verify-token", handler.ResendVerifyRequest)
 
 	//users
 	app.Get("/users/profile", auth, handler.GetProfile)

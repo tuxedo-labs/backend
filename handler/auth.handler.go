@@ -121,3 +121,44 @@ func VerifyCode(c *fiber.Ctx) error {
 		"message": "Email verified successfully",
 	})
 }
+
+func ResendVerifyRequest(c *fiber.Ctx) error {
+	resendRequest := new(request.ResendVerifyRequest)
+	if err := c.BodyParser(resendRequest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request",
+		})
+	}
+
+	user, err := services.GetUserByEmail(resendRequest.Email)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "User not found",
+		})
+	}
+
+	if user.Verify {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Account is already verified",
+		})
+	}
+
+	if err := services.DeleteVerifyTokenByUserID(user.ID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to delete old verification token",
+		})
+	}
+
+	token, err := services.GenerateAndSendVerificationToken(user)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to generate and send verification token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  true,
+		"message": "Verification token has been resent. Please check your email.",
+		"token":   token,
+	})
+}

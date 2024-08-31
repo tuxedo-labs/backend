@@ -15,3 +15,11 @@ type RegisterRequest struct {
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }
+
+type VerifyRequest struct {
+	Token string `json:"token" validate:"required"`
+}
+
+type ResendVerifyRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
