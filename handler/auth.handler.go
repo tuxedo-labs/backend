@@ -28,6 +28,12 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	if !user.Verify {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"message": "Account not verified. Please check your email for verification instructions.",
+		})
+	}
+
 	token, errGenerateToken := services.GenerateJWTToken(user)
 	if errGenerateToken != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -36,7 +42,8 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"token": token,
+		"status": true,
+		"token":  token,
 	})
 }
 
@@ -66,8 +73,8 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "Registration successful! Please check your email for the verification code",
 		"status":  result,
+		"message": "Registration successful! Please check your email for the verification code",
 	})
 }
 

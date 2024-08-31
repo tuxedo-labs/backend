@@ -43,3 +43,7 @@ func GetProfile(c *fiber.Ctx) error {
 		"data": profile,
 	})
 }
+
+func UpdateProfile(c *fiber.Ctx) error {
+	return nil
+}

@@ -24,11 +24,17 @@ func Auth(c *fiber.Ctx) error {
 		})
 	}
 
-	userID := claims["id"].(uint)
+	userID := uint(claims["id"].(float64))
 	var user entity.Users
 	if err := database.DB.First(&user, userID).Error; err != nil {
 		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
 			"message": "User not found",
+		})
+	}
+
+	if !user.Verify {
+		return c.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Account not verified. Please check your email for verification instructions.",
 		})
 	}
 

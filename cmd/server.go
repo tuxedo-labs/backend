@@ -27,6 +27,7 @@ func main() {
 	database.Connect()
 
 	routes.AutoMigrate()
+	app.Static("/", "./public")
 	routes.SetupRouter(app)
 
 	port := os.Getenv("APP_PORT")

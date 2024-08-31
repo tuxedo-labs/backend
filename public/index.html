@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Documentation - OPEN API TESTING FOR DEVELOPER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 text-gray-900">
+    <div class="container mx-auto px-4 py-8">
+      <h1 class="text-3xl font-bold mb-8">API Documentation</h1>
+
+      <!-- Login API -->
+      <section class="mb-12">
+        <h2 class="text-2xl font-semibold mb-4">1. /api/auth/login</h2>
+        <p class="mb-2">Endpoint untuk login pengguna.</p>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-2">Request Payload</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li>
+              <strong>email</strong> (string, required): Alamat email pengguna.
+            </li>
+            <li>
+              <strong>password</strong> (string, required): Kata sandi pengguna.
+            </li>
+          </ul>
+
+          <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
+          <p class="mb-2">
+            Jika berhasil, akan mengembalikan token JWT yang dapat digunakan
+            untuk autentikasi:
+          </p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "status": true,
+  "token": "your_jwt_token_here"
+}
+          </pre>
+          <p class="mt-2">Jika gagal, akan mengembalikan pesan error:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "message": "User not found" 
+  // atau
+  "message": "Account not verified. Please check your email for verification instructions."
+}
+          </pre>
+        </div>
+      </section>
+
+      <!-- Register API -->
+      <section>
+        <h2 class="text-2xl font-semibold mb-4">2. /api/auth/register</h2>
+        <p class="mb-2">Endpoint untuk registrasi pengguna baru.</p>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-2">Request Payload</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li>
+              <strong>name</strong> (string, required): Nama lengkap pengguna.
+            </li>
+            <li>
+              <strong>email</strong> (string, required): Alamat email pengguna.
+            </li>
+            <li>
+              <strong>password</strong> (string, required): Kata sandi pengguna.
+            </li>
+          </ul>
+
+          <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
+          <p class="mb-2">Jika berhasil, akan mengembalikan pesan sukses:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "status": true,
+  "message": "Registration successful! Please check your email for the verification code"
+}
+          </pre>
+          <p class="mt-2">Jika gagal, akan mengembalikan pesan error:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "message": "Email already in use" 
+  // atau
+  "message": "Failed to register user"
+}
+          </pre>
+        </div>
+      </section>
+
+      <section class="mt-10">
+        <h2 class="text-2xl font-semibold mb-4">3. /api/users/profile</h2>
+        <p class="mb-2">Endpoint untuk get user profile.</p>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-2">Headers</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>x-token</strong> your_jwt_token_here</li>
+          </ul>
+          <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
+          <p class="mb-2">Jika berhasil, akan mengembalikan pesan sukses:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "data": {
+    "name": "example",
+    "email": "example@gmail.com",
+    "role": "member or admin",
+    "createdAt": "2024-08-31",
+    "updatedAt": "2024-08-31",
+    "contacts": []
+  }
+}
+          </pre>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
