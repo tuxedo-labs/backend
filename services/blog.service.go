@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 	"tuxedo/database"
 	"tuxedo/models/entity"
 
@@ -19,6 +20,14 @@ func GetBlogAll() ([]entity.Blog, error) {
 		return nil, err
 	}
 	return blogs, nil
+}
+
+func GetBlogByID(id string) (*entity.Blog, error) {
+	var blog entity.Blog
+	if err := database.DB.Where("id = ?", id).First(&blog).Error; err != nil {
+		return nil, err
+	}
+	return &blog, nil
 }
 
 func hashFilename(filename string) string {
@@ -57,4 +66,34 @@ func UploadThumbnail(file *multipart.FileHeader) (string, error) {
 
 func SaveBlog(blog *entity.Blog) error {
 	return database.DB.Create(blog).Error
+}
+
+func UpdateBlog(id string, updateData map[string]interface{}) (*entity.Blog, error) {
+	var blog entity.Blog
+	if err := database.DB.Where("id = ?", id).First(&blog).Error; err != nil {
+		return nil, err
+	}
+
+	if err := database.DB.Model(&blog).Updates(updateData).Error; err != nil {
+		return nil, err
+	}
+
+	blog.UpdatedAt = time.Now()
+	if err := database.DB.Save(&blog).Error; err != nil {
+		return nil, err
+	}
+
+	return &blog, nil
+}
+
+func DeleteBlog(id string) error {
+	var blog entity.Blog
+	if err := database.DB.Where("id = ?", id).First(&blog).Error; err != nil {
+		return err
+	}
+
+	if err := database.DB.Delete(&blog).Error; err != nil {
+		return err
+	}
+	return nil
 }

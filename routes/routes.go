@@ -26,7 +26,10 @@ func SetupRouter(r *fiber.App) {
 
 	// blog
 	app.Get("/blog", handler.GetBlog)
+	app.Get("/blog/{id}", handler.GetBlogByID)
 	app.Post("/blog", handler.PostBlog)
+	app.Patch("/blog/:id", handler.PatchBlog)
+	app.Delete("/blog/:id", handler.DeleteBlog)
 }
 
 func AutoMigrate() {

@@ -13,7 +13,7 @@
       <!-- Login API -->
       <section class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">
-          1. <span class="text-red-500">POST</span> /api/auth/login
+          1. <span class="text-orange-500">POST</span> /api/auth/login
         </h2>
         <p class="mb-2">Endpoint untuk login pengguna.</p>
 
@@ -57,7 +57,7 @@
       <!-- Register API -->
       <section class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">
-          2. <span class="text-red-500">POST</span> /api/auth/register
+          2. <span class="text-orange-500">POST</span> /api/auth/register
         </h2>
         <p class="mb-2">Endpoint untuk registrasi pengguna baru.</p>
 
@@ -123,6 +123,75 @@
     "updatedAt": "2024-08-31",
     "contacts": []
   }
+}
+          </pre>
+        </div>
+      </section>
+
+      <!-- Get Blog -->
+      <section class="mt-10">
+        <h2 class="text-2xl font-semibold mb-4">
+          4. <span class="text-green-500">GET</span> /api/blog
+        </h2>
+        <p class="mb-2">Endpoint untuk mengambil profil pengguna.</p>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-2">Headers</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>content-type</strong>: application/json</li>
+          </ul>
+          <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
+          <p class="mb-2">Jika berhasil, akan mengembalikan profil pengguna:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "data": [
+    {
+      "ID": "904cf597-09dd-4dd5-997c-49551319cd7d",
+      "title": "example",
+      "description": "example",
+      "content": "example",
+      "thumbnail": "/blog/thumbnails/b871063d-fdcc-4c9b-9a16-544b8bcc2455.png",
+      "createdAt": "2024-08-31T21:22:19.532+07:00",
+      "updatedAt": "2024-08-31T21:22:19.532+07:00"
+    }
+    // dan seterus nya
+  ]
+}
+          </pre>
+        </div>
+      </section>
+
+      <!-- Get Blog -->
+      <section class="mt-10">
+        <h2 class="text-2xl font-semibold mb-4">
+          5. <span class="text-orange-500">POST</span> /api/blog
+        </h2>
+        <p class="mb-2">Endpoint untuk mengambil profil pengguna.</p>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-2">Headers</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>x-token</strong>: your_jwt_token_here</li>
+            <li><strong>content-type</strong>: application/json</li>
+          </ul>
+          <h3 class="text-xl font-semibold mb-2">Multipart/form-data</h3>
+          <ul class="list-disc list-inside ml-4">
+            <li><strong>title</strong>: example</li>
+            <li><strong>description</strong>: example</li>
+            <li><strong>content</strong>: example</li>
+            <li><strong>thumbnail</strong>: file type: image</li>
+          </ul>
+          <h3 class="text-xl font-semibold mt-4 mb-2">Response</h3>
+          <p class="mb-2">Jika berhasil, akan mengembalikan profil pengguna:</p>
+          <pre class="bg-gray-200 p-4 rounded">
+{
+  "ID": "904cf597-09dd-4dd5-997c-49551319cd7d",
+  "title": "example",
+  "description": "example",
+  "content": "example",
+  "thumbnail": "/blog/thumbnails/b871063d-fdcc-4c9b-9a16-544b8bcc2455.png",
+  "createdAt": "2024-08-31T21:22:19.532+07:00",
+  "updatedAt": "2024-08-31T21:22:19.532+07:00"
 }
           </pre>
         </div>
