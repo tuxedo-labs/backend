@@ -17,4 +17,5 @@ type Users struct {
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`
 	Contacts  []Contacts     `gorm:"foreignKey:UserID"`
+	Blog      []Blog         `gorm:"foreignKey:Author"`
 }

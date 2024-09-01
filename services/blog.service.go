@@ -15,7 +15,7 @@ import (
 
 func GetBlogAll() ([]entity.Blog, error) {
 	var blogs []entity.Blog
-	err := database.DB.Find(&blogs).Error
+	err := database.DB.Preload("User").Find(&blogs).Error
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func GetBlogAll() ([]entity.Blog, error) {
 
 func GetBlogByID(id string) (*entity.Blog, error) {
 	var blog entity.Blog
-	if err := database.DB.Where("id = ?", id).First(&blog).Error; err != nil {
+	if err := database.DB.Preload("User").Where("id = ?", id).First(&blog).Error; err != nil {
 		return nil, err
 	}
 	return &blog, nil
@@ -65,21 +65,21 @@ func UploadThumbnail(file *multipart.FileHeader) (string, error) {
 }
 
 func SaveBlog(blog *entity.Blog) error {
+	blog.CreatedAt = time.Now()
 	return database.DB.Create(blog).Error
 }
 
 func UpdateBlog(id string, updateData map[string]interface{}) (*entity.Blog, error) {
 	var blog entity.Blog
-	if err := database.DB.Where("id = ?", id).First(&blog).Error; err != nil {
+	if err := database.DB.First(&blog, "id = ?", id).Error; err != nil {
 		return nil, err
+	}
+
+	if authorID, ok := updateData["author"]; ok {
+		blog.Author = authorID.(uint)
 	}
 
 	if err := database.DB.Model(&blog).Updates(updateData).Error; err != nil {
-		return nil, err
-	}
-
-	blog.UpdatedAt = time.Now()
-	if err := database.DB.Save(&blog).Error; err != nil {
 		return nil, err
 	}
 

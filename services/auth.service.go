@@ -32,7 +32,7 @@ func GenerateJWTToken(user *entity.Users) (string, error) {
 		"name":  user.Name,
 		"email": user.Email,
 		"exp":   time.Now().Add(time.Minute * 2).Unix(),
-		"role":  "user",
+		"role":  "member",
 	}
 
 	if user.Role == "admin" {

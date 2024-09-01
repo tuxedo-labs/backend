@@ -26,9 +26,9 @@ func SetupRouter(r *fiber.App) {
 
 	// blog
 	app.Get("/blog", handler.GetBlog)
-	app.Get("/blog/{id}", handler.GetBlogByID)
-	app.Post("/blog", handler.PostBlog)
-	app.Patch("/blog/:id", handler.PatchBlog)
+	app.Get("/blog/:id", handler.GetBlogByID)
+	app.Post("/blog", auth, handler.PostBlog)
+	app.Put("/blog/:id", auth, handler.UpdateBlog)
 	app.Delete("/blog/:id", handler.DeleteBlog)
 }
 
