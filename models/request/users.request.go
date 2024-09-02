@@ -13,3 +13,11 @@ type UserProfile struct {
 	UpdatedAt string    `json:"updatedAt"`
 	Contacts  []Contact `json:"contacts"`
 }
+
+type UpdateUserProfileRequest struct {
+	ID       uint      `json:"id"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email"`
+	Role     string    `json:"role"`
+	Contacts []Contact `json:"contacts"`
+}

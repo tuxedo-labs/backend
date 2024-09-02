@@ -39,3 +39,34 @@ func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
 
 	return profile, nil
 }
+
+func UpdateUserProfile(updateRequest request.UpdateUserProfileRequest) error {
+	return database.DB.Transaction(func(tx *gorm.DB) error {
+		user := entity.Users{
+			ID:    updateRequest.ID,
+			Name:  updateRequest.Name,
+			Email: updateRequest.Email,
+			Role:  updateRequest.Role,
+		}
+		if err := tx.Model(&user).Updates(user).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Where("user_id = ?", updateRequest.ID).Delete(&entity.Contacts{}).Error; err != nil {
+			return err
+		}
+
+		for _, contact := range updateRequest.Contacts {
+			contactEntity := entity.Contacts{
+				UserID: user.ID,
+				Phone:  contact.Phone,
+				Bio:    contact.Bio,
+			}
+			if err := tx.Create(&contactEntity).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
