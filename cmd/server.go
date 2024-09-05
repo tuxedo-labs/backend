@@ -12,7 +12,11 @@ import (
 )
 
 func main() {
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		AppName:      "Tuxedo BackEnd",
+		ServerHeader: "Tuxedo",
+		BodyLimit:    10 * 1024 * 1024,
+	})
 
 	err := godotenv.Load()
 	if err != nil {
