@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"tuxedo/database"
 	"tuxedo/models/entity"
 	"tuxedo/models/request"
@@ -20,12 +21,13 @@ func GetUserByID(userID uint) (*entity.Users, error) {
 }
 
 func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
-	var contacts []request.Contact
-	for _, contact := range user.Contacts {
-		contacts = append(contacts, request.Contact{
-			Phone: contact.Phone,
-			Bio:   contact.Bio,
-		})
+	var contact request.Contact
+
+	if (user.Contacts != entity.Contacts{}) {
+		contact = request.Contact{
+			Phone: &user.Contacts.Phone,
+			Bio:   &user.Contacts.Bio,
+		}
 	}
 
 	profile := request.UserProfile{
@@ -34,7 +36,7 @@ func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
 		Role:      user.Role,
 		CreatedAt: user.CreatedAt.Format("2006-01-02"),
 		UpdatedAt: user.UpdatedAt.Format("2006-01-02"),
-		Contacts:  contacts,
+		Contacts:  contact,
 	}
 
 	return profile, nil
@@ -46,23 +48,28 @@ func UpdateUserProfile(updateRequest request.UpdateUserProfileRequest) error {
 			ID:    updateRequest.ID,
 			Name:  updateRequest.Name,
 			Email: updateRequest.Email,
-			Role:  updateRequest.Role,
 		}
 		if err := tx.Model(&user).Updates(user).Error; err != nil {
 			return err
 		}
 
-		if err := tx.Where("user_id = ?", updateRequest.ID).Delete(&entity.Contacts{}).Error; err != nil {
+		var existingContact entity.Contacts
+		if err := tx.Where("user_id = ?", updateRequest.ID).First(&existingContact).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 
-		for _, contact := range updateRequest.Contacts {
-			contactEntity := entity.Contacts{
-				UserID: user.ID,
-				Phone:  contact.Phone,
-				Bio:    contact.Bio,
+		contact := entity.Contacts{
+			UserID: updateRequest.ID,
+			Phone:  *updateRequest.Contacts.Phone,
+			Bio:    *updateRequest.Contacts.Bio,
+		}
+
+		if existingContact.ID == 0 {
+			if err := tx.Create(&contact).Error; err != nil {
+				return err
 			}
-			if err := tx.Create(&contactEntity).Error; err != nil {
+		} else {
+			if err := tx.Model(&existingContact).Updates(contact).Error; err != nil {
 				return err
 			}
 		}

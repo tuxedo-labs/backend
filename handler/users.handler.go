@@ -54,15 +54,21 @@ func UpdateProfile(c *fiber.Ctx) error {
 		})
 	}
 
-	claims := usersInfo.(jwt.MapClaims)
+	claims, ok := usersInfo.(jwt.MapClaims)
+
+	if !ok {
+		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to parse token claims",
+		})
+	}
 
 	idFloat, ok := claims["id"].(float64)
 	if !ok {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
-			"message": "User ID not found",
+			"message": "User ID not found in token claims",
 		})
 	}
-	userId := uint(idFloat)
+	userID := uint(idFloat)
 
 	var updateRequest request.UpdateUserProfileRequest
 	if err := c.BodyParser(&updateRequest); err != nil {
@@ -71,16 +77,13 @@ func UpdateProfile(c *fiber.Ctx) error {
 		})
 	}
 
-	if userId != updateRequest.ID {
-		return c.Status(http.StatusForbidden).JSON(fiber.Map{
-			"message": "You can only update your own profile",
-		})
-	}
+	updateRequest.ID = userID
 
 	err := services.UpdateUserProfile(updateRequest)
 	if err != nil {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error updating profile",
+			"error":   err.Error(),
 		})
 	}
 
