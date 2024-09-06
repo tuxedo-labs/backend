@@ -87,8 +87,8 @@ func HashAndStoreUser(registerRequest *request.RegisterRequest) (string, error) 
 	if err != nil {
 		return "", err
 	}
-
-	return "success", nil
+	// change token to status if in prod
+	return token, nil
 }
 
 func UpdateUser(user *entity.Users) error {
