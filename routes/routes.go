@@ -39,4 +39,5 @@ func AutoMigrate() {
 	config.RunMigrate(&entity.Contacts{})
 	config.RunMigrate(&entity.VerifyToken{})
 	config.RunMigrate(&entity.Blog{})
+	config.RunMigrate(&entity.Posts{})
 }
