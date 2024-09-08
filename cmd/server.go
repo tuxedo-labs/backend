@@ -8,6 +8,7 @@ import (
 	"tuxedo/routes"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -31,6 +32,10 @@ func main() {
 	database.Connect()
 
 	routes.AutoMigrate()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowCredentials: true,
+	}))
 	app.Static("/", "./public")
 	routes.SetupRouter(app)
 
