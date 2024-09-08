@@ -32,10 +32,15 @@ func main() {
 	database.Connect()
 
 	routes.AutoMigrate()
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
-		AllowCredentials: true,
+		AllowOrigins:     "http://localhost",                             // Mengizinkan semua asal
+		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD", // Mengizinkan semua metode
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",  // Header yang diizinkan
+		ExposeHeaders:    "Content-Length",                               // Header yang dapat diekspos
+		AllowCredentials: true,                                           // Mengizinkan kredensial
 	}))
+
 	app.Static("/", "./public")
 	routes.SetupRouter(app)
 
