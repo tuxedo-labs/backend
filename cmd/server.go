@@ -34,7 +34,7 @@ func main() {
 	routes.AutoMigrate()
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost",                             // Mengizinkan semua asal
+		AllowOrigins:     "http://localhost:5173",                        // Mengizinkan semua asal
 		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD", // Mengizinkan semua metode
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",  // Header yang diizinkan
 		ExposeHeaders:    "Content-Length",                               // Header yang dapat diekspos
