@@ -145,3 +145,17 @@ func GenerateAndSendVerificationToken(user *entity.Users) error {
 
 	return nil
 }
+
+func AuthenticateUser(email, password string) (*entity.Users, error) {
+	var user entity.Users
+	err := database.DB.First(&user, "email = ?", email).Error
+	if err != nil {
+		return nil, err
+	}
+
+	if !middleware.CheckPassword(user.Password, password) {
+		return nil, fmt.Errorf("invalid password")
+	}
+
+	return &user, nil
+}

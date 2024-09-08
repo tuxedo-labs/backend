@@ -21,10 +21,10 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	user, err := services.GetUserByEmail(loginRequest.Email)
+	user, err := services.AuthenticateUser(loginRequest.Email, loginRequest.Password)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"message": "User not found",
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Invalid email or password",
 		})
 	}
 
@@ -37,7 +37,7 @@ func Login(c *fiber.Ctx) error {
 	token, errGenerateToken := services.GenerateJWTToken(user)
 	if errGenerateToken != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Wrong credentials",
+			"message": "Error generating token",
 		})
 	}
 
