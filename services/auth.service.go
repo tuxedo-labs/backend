@@ -31,7 +31,7 @@ func GenerateJWTToken(user *entity.Users) (string, error) {
 		"id":    user.ID,
 		"name":  user.Name,
 		"email": user.Email,
-		"exp":   time.Now().Add(time.Minute * 2).Unix(),
+		"exp":   time.Now().Add(time.Hour * 24 * 7).Unix(),
 		"role":  "member",
 	}
 
