@@ -64,12 +64,17 @@ func SendVerificationEmail(email, token string) error {
 	if appName == "" {
 		appName = "example"
 	}
+	verificationLink := fmt.Sprintf("http://localhost:3000/auth/verify?token=%s", token)
 	message := map[string]interface{}{
 		"email": map[string]string{
 			"subject": fmt.Sprintf("Please verify your email - %s", appName),
-			"content": fmt.Sprintf("Register berhasil, segera aktifasi akun anda dengan memasukan token <b>%s</b>", token),
-			"from":    "rafia9005@gmail.com",
-			"to":      email,
+			"content": fmt.Sprintf(`
+				<p>Register berhasil, segera aktifasi akun anda dengan memasukan token <b>%s</b> atau klik tombol di bawah ini:</p>
+				<a href="%s" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-align: center; text-decoration: none; border-radius: 5px;">Verifikasi Email</a>
+				<p>Jika tombol tidak berfungsi, salin dan tempelkan link berikut di browser Anda: %s</p>`,
+				token, verificationLink, verificationLink),
+			"from": "rafia9005@gmail.com",
+			"to":   email,
 		},
 	}
 
