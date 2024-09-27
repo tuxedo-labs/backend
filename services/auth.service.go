@@ -1,18 +1,23 @@
 package services
 
 import (
+	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 	"tuxedo/database"
 	"tuxedo/lib"
 	"tuxedo/middleware"
 	"tuxedo/models/entity"
 	"tuxedo/models/request"
+	"tuxedo/provider"
 	"tuxedo/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/oauth2"
 )
 
 func ValidateLogin(loginRequest *request.LoginRequest) error {
@@ -63,32 +68,14 @@ func HashAndStoreUser(registerRequest *request.RegisterRequest) (string, error) 
 		Email:    registerRequest.Email,
 		Password: hashedPassword,
 		Role:     "member",
-		Verify:   false,
+		Verify:   true,
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {
 		return "", err
 	}
 
-	token, err := generateVerificationToken()
-	if err != nil {
-		return "", err
-	}
-
-	verifyToken := entity.VerifyToken{
-		Token:  token,
-		UserID: newUser.ID,
-	}
-	if err := database.DB.Create(&verifyToken).Error; err != nil {
-		return "", err
-	}
-
-	err = lib.SendVerificationEmail(newUser.Email, token)
-	if err != nil {
-		return "", err
-	}
-	// change token to status if in prod
-	return token, nil
+	return fmt.Sprintf("User %s registered successfully", newUser.Email), nil
 }
 
 func UpdateUser(user *entity.Users) error {
@@ -158,4 +145,43 @@ func AuthenticateUser(email, password string) (*entity.Users, error) {
 	}
 
 	return &user, nil
+}
+
+func GetGoogleAuthURL(redirectURI string) string {
+	return provider.GoogleOauthConfig.AuthCodeURL(redirectURI)
+}
+
+func GetGoogleUserInfo(token *oauth2.Token) (map[string]interface{}, error) {
+	client := provider.GoogleOauthConfig.Client(context.Background(), token)
+
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user info: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get user info: status code %d", resp.StatusCode)
+	}
+
+	var userInfo map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		return nil, fmt.Errorf("failed to decode user info: %w", err)
+	}
+
+	return userInfo, nil
+}
+
+func SaveGoogleUser(name, email string) error {
+	newUser := entity.Users{
+		Name:   name,
+		Email:  email,
+		Role:   "member",
+		Verify: true,
+	}
+
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		return err
+	}
+	return nil
 }

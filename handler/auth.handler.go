@@ -1,8 +1,12 @@
 package handler
 
 import (
+	"context"
 	"fmt"
+	"tuxedo/database"
+	"tuxedo/models/entity"
 	"tuxedo/models/request"
+	"tuxedo/provider"
 	"tuxedo/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -159,5 +163,84 @@ func ResendVerifyRequest(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  true,
 		"message": "Verification token has been resent. Please check your email.",
+	})
+}
+
+// Oauth google provider
+
+func AuthGoogle(c *fiber.Ctx) error {
+	form := c.Query("from", "/")
+	url := services.GetGoogleAuthURL(form)
+	return c.Redirect(url)
+}
+
+func CallbackAuthGoogle(c *fiber.Ctx) error {
+	code := c.Query("code")
+	if code == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Authorization code is missing",
+		})
+	}
+
+	token, err := provider.GoogleOauthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to exchange authorization code for token",
+		})
+	}
+
+	userInfo, err := services.GetGoogleUserInfo(token)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Failed to get user info: %v", err),
+		})
+	}
+
+	var user entity.Users
+	email := userInfo["email"].(string)
+	err = database.DB.First(&user, "email = ?", email).Error
+
+	if err != nil {
+		if saveErr := services.SaveGoogleUser(userInfo["name"].(string), email); saveErr != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
+			})
+		}
+
+		err = database.DB.First(&user, "email = ?", email).Error
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Failed to fetch the newly created user",
+			})
+		}
+	} else {
+		user.Name = userInfo["name"].(string)
+		if err := database.DB.Save(&user).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Failed to update user data: %v", err),
+			})
+		}
+	}
+
+	jwtToken, err := services.GenerateJWTToken(&user)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to generate JWT token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"token":  jwtToken,
+		"data": fiber.Map{
+			"user": userInfo,
+		},
 	})
 }

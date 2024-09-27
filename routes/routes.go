@@ -20,6 +20,10 @@ func SetupRouter(r *fiber.App) {
 	app.Post("/auth/verify-token", handler.VerifyCode)
 	app.Post("/auth/resend-verify-token", handler.ResendVerifyRequest)
 
+	// oauth google provider
+	app.Get("/auth/google", handler.AuthGoogle)
+	app.Get("/auth/google/callback", handler.CallbackAuthGoogle)
+
 	//users
 	app.Get("/users/profile", auth, handler.GetProfile)
 	app.Put("/users/update", auth, handler.UpdateProfile)
@@ -32,6 +36,7 @@ func SetupRouter(r *fiber.App) {
 	app.Delete("/blog/:id", auth, admin, handler.DeleteBlog)
 
 	// Posts
+	// app.Get("/posts")
 }
 
 func AutoMigrate() {
