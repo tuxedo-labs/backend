@@ -200,11 +200,19 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 	}
 
 	var user entity.Users
-	email := userInfo["email"].(string)
-	err = database.DB.First(&user, "email = ?", email).Error
+	email, emailExists := userInfo["email"].(string)
+	givenName := userInfo["given_name"].(string)
+	familyName := userInfo["family_name"].(string)
+	if !emailExists {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Email is missing from user info",
+		})
+	}
 
+	err = database.DB.First(&user, "email = ?", email).Error
 	if err != nil {
-		if saveErr := services.SaveGoogleUser(userInfo["name"].(string), email); saveErr != nil {
+		if saveErr := services.SaveGoogleUser(givenName, familyName, email); saveErr != nil {
 			return c.Status(500).JSON(fiber.Map{
 				"status":  "error",
 				"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
@@ -219,7 +227,10 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 			})
 		}
 	} else {
-		user.Name = userInfo["name"].(string)
+		name, nameExists := userInfo["name"].(string)
+		if nameExists {
+			user.Name = name
+		}
 		if err := database.DB.Save(&user).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{
 				"status":  "error",

@@ -64,11 +64,13 @@ func HashAndStoreUser(registerRequest *request.RegisterRequest) (string, error) 
 	}
 
 	newUser := entity.Users{
-		Name:     registerRequest.Name,
-		Email:    registerRequest.Email,
-		Password: hashedPassword,
-		Role:     "member",
-		Verify:   true,
+		Name:      fmt.Sprintf("%s %s", registerRequest.FirstName, registerRequest.LastName),
+		FirstName: registerRequest.FirstName,
+		LastName:  registerRequest.LastName,
+		Email:     registerRequest.Email,
+		Password:  hashedPassword,
+		Role:      "member",
+		Verify:    true,
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {
@@ -172,12 +174,14 @@ func GetGoogleUserInfo(token *oauth2.Token) (map[string]interface{}, error) {
 	return userInfo, nil
 }
 
-func SaveGoogleUser(name, email string) error {
+func SaveGoogleUser(firstName, lastName, email string) error {
 	newUser := entity.Users{
-		Name:   name,
-		Email:  email,
-		Role:   "member",
-		Verify: true,
+		Name:      fmt.Sprintf("%s %s", firstName, lastName),
+		FirstName: firstName,
+		LastName:  lastName,
+		Email:     email,
+		Role:      "member",
+		Verify:    true,
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {

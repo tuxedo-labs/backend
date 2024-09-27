@@ -32,6 +32,8 @@ func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
 
 	profile := request.UserProfile{
 		Name:      user.Name,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
 		Email:     user.Email,
 		Role:      user.Role,
 		CreatedAt: user.CreatedAt.Format("2006-01-02"),
