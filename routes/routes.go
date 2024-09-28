@@ -23,6 +23,7 @@ func SetupRouter(r *fiber.App) {
 	// oauth google provider
 	app.Get("/auth/google", handler.AuthGoogle)
 	app.Get("/auth/google/callback", handler.CallbackAuthGoogle)
+	// app.Get("/auth/google/register")
 
 	//users
 	app.Get("/users/profile", auth, handler.GetProfile)

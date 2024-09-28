@@ -21,10 +21,10 @@ func GetUserByID(userID uint) (*entity.Users, error) {
 }
 
 func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
-	var contact request.Contact
+	var contact request.Contacts
 
-	if (user.Contacts != entity.Contacts{}) {
-		contact = request.Contact{
+	if user.Contacts != (entity.Contacts{}) {
+		contact = request.Contacts{
 			Phone: &user.Contacts.Phone,
 			Bio:   &user.Contacts.Bio,
 		}
@@ -36,6 +36,7 @@ func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
 		LastName:  user.LastName,
 		Email:     user.Email,
 		Role:      user.Role,
+		Verify:    user.Verify,
 		CreatedAt: user.CreatedAt.Format("2006-01-02"),
 		UpdatedAt: user.UpdatedAt.Format("2006-01-02"),
 		Contacts:  contact,
@@ -46,6 +47,7 @@ func BuildUserProfile(user *entity.Users) (request.UserProfile, error) {
 
 func UpdateUserProfile(updateRequest request.UpdateUserProfileRequest) error {
 	return database.DB.Transaction(func(tx *gorm.DB) error {
+		// Update user details
 		user := entity.Users{
 			ID:    updateRequest.ID,
 			Name:  updateRequest.Name,
@@ -55,17 +57,26 @@ func UpdateUserProfile(updateRequest request.UpdateUserProfileRequest) error {
 			return err
 		}
 
+		// Fetch existing contact
 		var existingContact entity.Contacts
 		if err := tx.Where("user_id = ?", updateRequest.ID).First(&existingContact).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 
+		// Prepare contact for update
 		contact := entity.Contacts{
 			UserID: updateRequest.ID,
-			Phone:  *updateRequest.Contacts.Phone,
-			Bio:    *updateRequest.Contacts.Bio,
 		}
 
+		// Only assign values if they are not nil
+		if updateRequest.Contacts.Phone != nil {
+			contact.Phone = *updateRequest.Contacts.Phone // Dereference safely
+		}
+		if updateRequest.Contacts.Bio != nil {
+			contact.Bio = *updateRequest.Contacts.Bio // Dereference safely
+		}
+
+		// Create or update the contact
 		if existingContact.ID == 0 {
 			if err := tx.Create(&contact).Error; err != nil {
 				return err

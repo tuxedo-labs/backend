@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"fmt"
-	"tuxedo/database"
 	"tuxedo/models/entity"
 	"tuxedo/models/request"
 	"tuxedo/provider"
@@ -199,10 +198,10 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 		})
 	}
 
-	var user entity.Users
 	email, emailExists := userInfo["email"].(string)
 	givenName := userInfo["given_name"].(string)
 	familyName := userInfo["family_name"].(string)
+
 	if !emailExists {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
@@ -210,36 +209,68 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 		})
 	}
 
-	err = database.DB.First(&user, "email = ?", email).Error
+	existingUser, err := services.GetUserByEmail(email)
 	if err != nil {
-		if saveErr := services.SaveGoogleUser(givenName, familyName, email); saveErr != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"status":  "error",
-				"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
-			})
-		}
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Failed to check if user exists: %v", err),
+		})
+	}
 
-		err = database.DB.First(&user, "email = ?", email).Error
-		if err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Failed to fetch the newly created user",
-			})
-		}
-	} else {
-		name, nameExists := userInfo["name"].(string)
-		if nameExists {
-			user.Name = name
-		}
-		if err := database.DB.Save(&user).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{
-				"status":  "error",
-				"message": fmt.Sprintf("Failed to update user data: %v", err),
-			})
+	convertContacts := func(contacts entity.Contacts) request.Contacts {
+		return request.Contacts{
+			Phone: &contacts.Phone,
+			Bio:   &contacts.Bio,
 		}
 	}
 
-	jwtToken, err := services.GenerateJWTToken(&user)
+	if existingUser != nil {
+		jwtToken, err := services.GenerateJWTToken(existingUser)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Failed to generate JWT token",
+			})
+		}
+
+		userResponse := request.UserResponse{
+			ID:        existingUser.ID,
+			Name:      existingUser.Name,
+			FirstName: existingUser.FirstName,
+			LastName:  existingUser.LastName,
+			Email:     existingUser.Email,
+			Role:      existingUser.Role,
+			Verify:    existingUser.Verify,
+			CreatedAt: existingUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			UpdatedAt: existingUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			Contacts:  convertContacts(existingUser.Contacts),
+		}
+
+		return c.JSON(fiber.Map{
+			"status": "success",
+			"token":  jwtToken,
+			"data": fiber.Map{
+				"user": userResponse,
+			},
+		})
+	}
+
+	if saveErr := services.SaveGoogleUser(givenName, familyName, email); saveErr != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
+		})
+	}
+
+	newUser, err := services.GetUserByEmail(email)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to fetch the newly created user",
+		})
+	}
+
+	jwtToken, err := services.GenerateJWTToken(newUser)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status":  "error",
@@ -247,11 +278,24 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 		})
 	}
 
+	userResponse := request.UserResponse{
+		ID:        newUser.ID,
+		Name:      newUser.Name,
+		FirstName: newUser.FirstName,
+		LastName:  newUser.LastName,
+		Email:     newUser.Email,
+		Role:      newUser.Role,
+		Verify:    newUser.Verify,
+		CreatedAt: newUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt: newUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		Contacts:  convertContacts(newUser.Contacts),
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"token":  jwtToken,
 		"data": fiber.Map{
-			"user": userInfo,
+			"user": userResponse,
 		},
 	})
 }
