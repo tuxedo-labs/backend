@@ -2,13 +2,14 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"tuxedo/models/entity"
 	"tuxedo/models/request"
 	"tuxedo/provider"
 	"tuxedo/services"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func Login(c *fiber.Ctx) error {
@@ -211,66 +212,43 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 
 	existingUser, err := services.GetUserByEmail(email)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"status":  "error",
-			"message": fmt.Sprintf("Failed to check if user exists: %v", err),
-		})
-	}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			if saveErr := services.SaveGoogleUser(givenName, familyName, email); saveErr != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
+				})
+			}
+			existingUser, err = services.GetUserByEmail(email)
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to fetch the newly created user",
+				})
+			}
+			jwtToken, err := services.GenerateJWTToken(existingUser)
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to generate JWT token",
+				})
+			}
 
-	convertContacts := func(contacts entity.Contacts) request.Contacts {
-		return request.Contacts{
-			Phone: &contacts.Phone,
-			Bio:   &contacts.Bio,
-		}
-	}
-
-	if existingUser != nil {
-		jwtToken, err := services.GenerateJWTToken(existingUser)
-		if err != nil {
+			return c.JSON(fiber.Map{
+				"status":  "success",
+				"token":   jwtToken,
+				"message": "Regsiter with google is success",
+				// if user not register
+			})
+		} else {
 			return c.Status(500).JSON(fiber.Map{
 				"status":  "error",
-				"message": "Failed to generate JWT token",
+				"message": fmt.Sprintf("Failed to check if user exists: %v", err),
 			})
 		}
-
-		userResponse := request.UserResponse{
-			ID:        existingUser.ID,
-			Name:      existingUser.Name,
-			FirstName: existingUser.FirstName,
-			LastName:  existingUser.LastName,
-			Email:     existingUser.Email,
-			Role:      existingUser.Role,
-			Verify:    existingUser.Verify,
-			CreatedAt: existingUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			UpdatedAt: existingUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			Contacts:  convertContacts(existingUser.Contacts),
-		}
-
-		return c.JSON(fiber.Map{
-			"status": "success",
-			"token":  jwtToken,
-			"data": fiber.Map{
-				"user": userResponse,
-			},
-		})
 	}
 
-	if saveErr := services.SaveGoogleUser(givenName, familyName, email); saveErr != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"status":  "error",
-			"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
-		})
-	}
-
-	newUser, err := services.GetUserByEmail(email)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Failed to fetch the newly created user",
-		})
-	}
-
-	jwtToken, err := services.GenerateJWTToken(newUser)
+	jwtToken, err := services.GenerateJWTToken(existingUser)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status":  "error",
@@ -278,24 +256,20 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 		})
 	}
 
-	userResponse := request.UserResponse{
-		ID:        newUser.ID,
-		Name:      newUser.Name,
-		FirstName: newUser.FirstName,
-		LastName:  newUser.LastName,
-		Email:     newUser.Email,
-		Role:      newUser.Role,
-		Verify:    newUser.Verify,
-		CreatedAt: newUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt: newUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		Contacts:  convertContacts(newUser.Contacts),
-	}
-
 	return c.JSON(fiber.Map{
-		"status": "success",
-		"token":  jwtToken,
+		"status":  "success",
+		"message": "User already exists",
+		"token":   jwtToken,
 		"data": fiber.Map{
-			"user": userResponse,
+			"user": request.UserResponse{
+				ID:        existingUser.ID,
+				Name:      existingUser.Name,
+				FirstName: existingUser.FirstName,
+				LastName:  existingUser.LastName,
+				Email:     existingUser.Email,
+				CreatedAt: existingUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+				UpdatedAt: existingUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			},
 		},
 	})
 }
