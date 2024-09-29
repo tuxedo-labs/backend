@@ -153,6 +153,10 @@ func GetGoogleAuthURL(redirectURI string) string {
 	return provider.GoogleOauthConfig.AuthCodeURL(redirectURI)
 }
 
+func GetGithubAuthUrl(redirectURI string) string {
+	return provider.GithubOauthConfig.AuthCodeURL(redirectURI)
+}
+
 func GetGoogleUserInfo(token *oauth2.Token) (map[string]interface{}, error) {
 	client := provider.GoogleOauthConfig.Client(context.Background(), token)
 
@@ -174,7 +178,58 @@ func GetGoogleUserInfo(token *oauth2.Token) (map[string]interface{}, error) {
 	return userInfo, nil
 }
 
+func GetGithubUserInfo(token *oauth2.Token) (map[string]interface{}, error) {
+	client := provider.GithubOauthConfig.Client(context.Background(), token)
+
+	resp, err := client.Get("https://api.github.com/user")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user info: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get user info: status code %d", resp.StatusCode)
+	}
+
+	var userInfo map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		return nil, fmt.Errorf("failed to decode user info: %w", err)
+	}
+
+	return userInfo, nil
+}
+
+func GetGithubUserPrimaryEmail(token *oauth2.Token) (string, error) {
+	client := provider.GithubOauthConfig.Client(context.Background(), token)
+
+	resp, err := client.Get("https://api.github.com/user/emails")
+	if err != nil {
+		return "", fmt.Errorf("failed to get user emails: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to get user emails: status code %d", resp.StatusCode)
+	}
+
+	var emails []map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&emails); err != nil {
+		return "", fmt.Errorf("failed to decode user emails: %w", err)
+	}
+
+	for _, e := range emails {
+		if primary, ok := e["primary"].(bool); ok && primary {
+			if email, ok := e["email"].(string); ok {
+				return email, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no primary email found")
+}
+
 func SaveGoogleUser(firstName, lastName, email string) error {
+	provider := "google"
 	newUser := entity.Users{
 		Name:      fmt.Sprintf("%s %s", firstName, lastName),
 		FirstName: firstName,
@@ -182,10 +237,30 @@ func SaveGoogleUser(firstName, lastName, email string) error {
 		Email:     email,
 		Role:      "member",
 		Verify:    true,
+		Provider:  &provider,
 	}
 
 	if err := database.DB.Create(&newUser).Error; err != nil {
 		return err
 	}
+	return nil
+}
+
+func SaveGithubUser(fristName, lastName, email string) error {
+	provider := "github"
+	newUser := entity.Users{
+		Name:      fmt.Sprintf("%s %s", fristName, lastName),
+		FirstName: fristName,
+		LastName:  lastName,
+		Email:     email,
+		Role:      "member",
+		Verify:    true,
+		Provider:  &provider,
+	}
+
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		return err
+	}
+
 	return nil
 }

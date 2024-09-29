@@ -23,7 +23,10 @@ func SetupRouter(r *fiber.App) {
 	// oauth google provider
 	app.Get("/auth/google", handler.AuthGoogle)
 	app.Get("/auth/google/callback", handler.CallbackAuthGoogle)
-	// app.Get("/auth/google/register")
+
+	// oauth github provider
+	app.Get("/auth/github", handler.AuthGithub)
+	app.Get("/auth/github/callback", handler.CallbackAuthGithub)
 
 	//users
 	app.Get("/users/profile", auth, handler.GetProfile)
@@ -35,9 +38,6 @@ func SetupRouter(r *fiber.App) {
 	app.Post("/blog", auth, admin, handler.PostBlog)
 	app.Put("/blog/:id", auth, admin, handler.UpdateBlog)
 	app.Delete("/blog/:id", auth, admin, handler.DeleteBlog)
-
-	// Posts
-	// app.Get("/posts")
 }
 
 func AutoMigrate() {

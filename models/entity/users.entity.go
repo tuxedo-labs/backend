@@ -15,6 +15,7 @@ type Users struct {
 	Password  string         `json:"password"`
 	Role      string         `json:"role" gorm:"type:enum('admin','member')"`
 	Verify    bool           `json:"verify"`
+	Provider  *string        `json:"provider" gorm:"type:enum('default', 'google', 'github');default:'default'"`
 	CreatedAt time.Time      `json:"createdAt"`
 	UpdatedAt time.Time      `json:"updatedAt"`
 	DeletedAt gorm.DeletedAt `json:"deletedAt" gorm:"index"`

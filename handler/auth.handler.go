@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"tuxedo/models/request"
 	"tuxedo/provider"
 	"tuxedo/services"
@@ -237,8 +238,7 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 			return c.JSON(fiber.Map{
 				"status":  "success",
 				"token":   jwtToken,
-				"message": "Regsiter with google is success",
-				// if user not register
+				"message": "Registered with Google successfully",
 			})
 		} else {
 			return c.Status(500).JSON(fiber.Map{
@@ -246,6 +246,136 @@ func CallbackAuthGoogle(c *fiber.Ctx) error {
 				"message": fmt.Sprintf("Failed to check if user exists: %v", err),
 			})
 		}
+	}
+
+	if existingUser.Provider != nil && *existingUser.Provider != "google" {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Your account is already registered with provider '%s'", *existingUser.Provider),
+		})
+	}
+
+	jwtToken, err := services.GenerateJWTToken(existingUser)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to generate JWT token",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "User already exists",
+		"token":   jwtToken,
+		"data": fiber.Map{
+			"user": request.UserResponse{
+				ID:        existingUser.ID,
+				Name:      existingUser.Name,
+				FirstName: existingUser.FirstName,
+				LastName:  existingUser.LastName,
+				Email:     existingUser.Email,
+				CreatedAt: existingUser.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+				UpdatedAt: existingUser.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+			},
+		},
+	})
+}
+
+// GITHU PROVIDER
+
+func AuthGithub(c *fiber.Ctx) error {
+	form := c.Query("from", "/")
+	url := services.GetGithubAuthUrl(form)
+	return c.Redirect(url)
+}
+
+func CallbackAuthGithub(c *fiber.Ctx) error {
+	code := c.Query("code")
+	if code == "" {
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Authorization code is missing",
+		})
+	}
+
+	token, err := provider.GithubOauthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		fmt.Printf("Error exchanging code for token: %v\n", err)
+		return c.Status(401).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Failed to exchange authorization code for token",
+		})
+	}
+
+	userInfo, err := services.GetGithubUserInfo(token)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Failed to get user info: %v", err),
+		})
+	}
+
+	email, err := services.GetGithubUserPrimaryEmail(token)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Failed to get user email: %v", err),
+		})
+	}
+
+	existingUser, err := services.GetUserByEmail(email)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			var firstName, lastName string
+			if name, ok := userInfo["name"].(string); ok {
+				nameParts := strings.Fields(name)
+				if len(nameParts) > 0 {
+					firstName = nameParts[0]
+					if len(nameParts) > 1 {
+						lastName = strings.Join(nameParts[1:], " ")
+					}
+				}
+			}
+			if saveErr := services.SaveGithubUser(firstName, lastName, email); saveErr != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": fmt.Sprintf("Failed to save new user data: %v", saveErr),
+				})
+			}
+			existingUser, err = services.GetUserByEmail(email)
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to fetch the newly created user",
+				})
+			}
+			jwtToken, err := services.GenerateJWTToken(existingUser)
+			if err != nil {
+				return c.Status(500).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Failed to generate JWT token",
+				})
+			}
+
+			return c.JSON(fiber.Map{
+				"status":  "success",
+				"token":   jwtToken,
+				"message": "Registered with Github successfully",
+			})
+		} else {
+			return c.Status(500).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Failed to check if user exists: %v", err),
+			})
+		}
+	}
+
+	if existingUser.Provider != nil && *existingUser.Provider != "github" {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Your account is already registered with provider '%s'", *existingUser.Provider),
+		})
 	}
 
 	jwtToken, err := services.GenerateJWTToken(existingUser)
