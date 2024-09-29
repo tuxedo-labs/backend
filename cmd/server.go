@@ -7,7 +7,7 @@ import (
 	"tuxedo/routes"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	// "github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -27,13 +27,13 @@ func main() {
 
 	routes.AutoMigrate()
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173, https://tuxedo-frontend.vercel.app", // Mengizinkan semua asal
-		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD",              // Mengizinkan semua metode
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, x-token",      // Header yang diizinkan
-		ExposeHeaders:    "Content-Length",                                            // Header yang dapat diekspos
-		AllowCredentials: true,                                                        // Mengizinkan kredensial
-	}))
+	// app.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     "http://localhost:5173, https://tuxedo-frontend.vercel.app", // Mengizinkan semua asal
+	// 	AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD",              // Mengizinkan semua metode
+	// 	AllowHeaders:     "Origin, Content-Type, Accept, Authorization, x-token",      // Header yang diizinkan
+	// 	ExposeHeaders:    "Content-Length",                                            // Header yang dapat diekspos
+	// 	AllowCredentials: true,                                                        // Mengizinkan kredensial
+	// }))
 
 	app.Static("/", "./public")
 	routes.SetupRouter(app)
