@@ -32,7 +32,7 @@ func SetupRouter(r *fiber.App) {
 	app.Get("/users/profile", auth, handler.GetProfile)
 	app.Put("/users/update", auth, handler.UpdateProfile)
 
-	// blog
+	// blog CRUD
 	app.Get("/blog", handler.GetBlog)
 	app.Get("/blog/:id", handler.GetBlogByID)
 	app.Post("/blog", auth, admin, handler.PostBlog)

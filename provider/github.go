@@ -17,6 +17,8 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
+
+	// config Github provider
 	GithubOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
 		ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET_KEY"),

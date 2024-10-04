@@ -17,6 +17,7 @@ func init() {
 		log.Fatalf("Error loading .env file")
 	}
 
+	// config Google provider
 	GoogleOauthConfig = &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET_KEY"),
