@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"tuxedo/database"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+  fmt.Println("test")
 	app := fiber.New(fiber.Config{
 		AppName:      "Tuxedo BackEnd",
 		ServerHeader: "Tuxedo",
