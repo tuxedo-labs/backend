@@ -1,0 +1,30 @@
+{
+  "company": {
+    "name": "Tuxedo Labs",
+    "description": "Tuxedo Labs adalah perusahaan teknologi yang fokus pada pengembangan solusi cloud inovatif untuk berbagai industri.",
+    "services": [
+      {
+        "name": "Tuxedo Cloud",
+        "description": "Layanan cloud yang menawarkan penyimpanan data yang aman, skalabilitas tinggi, dan aksesibilitas global. Cocok untuk perusahaan dari semua ukuran.",
+        "features": [
+          "Penyimpanan data yang aman dan terenkripsi",
+          "Backup otomatis dan pemulihan bencana",
+          "Integrasi dengan berbagai platform dan API",
+          "Analitik data untuk wawasan bisnis",
+          "Dukungan 24/7 untuk pelanggan"
+        ]
+      }
+    ],
+    "developedBy": "Rafi",
+    "mission": "Menyediakan solusi cloud yang handal dan terjangkau untuk membantu perusahaan beradaptasi dengan kebutuhan digital yang terus berkembang.",
+    "vision": "Menjadi pemimpin dalam layanan cloud yang inovatif dan memberdayakan bisnis di seluruh dunia.",
+    "values": [
+      "Inovasi",
+      "Keamanan",
+      "Kepuasan Pelanggan",
+      "Keterbukaan",
+      "Kerja Tim"
+    ]
+  }
+}
+

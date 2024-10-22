@@ -38,6 +38,9 @@ func SetupRouter(r *fiber.App) {
 	app.Post("/blog", auth, admin, handler.PostBlog)
 	app.Put("/blog/:id", auth, admin, handler.UpdateBlog)
 	app.Delete("/blog/:id", auth, admin, handler.DeleteBlog)
+
+	// customer services with GEMINI AI
+	app.Post("/customer-services/message", handler.MessageCS)
 }
 
 func AutoMigrate() {
